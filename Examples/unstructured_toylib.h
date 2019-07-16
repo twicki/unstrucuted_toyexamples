@@ -3,15 +3,10 @@
 #include <cmath>
 #include <iostream>
 #include <list>
-#include <ostream>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#define DOM_SIZE_HORIZONTAL 3
-#define DOM_SIZE_VERTICAL 3
-#define NUM_TRIANGLES DOM_SIZE_HORIZONTAL* DOM_SIZE_VERTICAL * 2
 
 typedef std::tuple<int, int> coord_t;
 
@@ -57,46 +52,21 @@ class Triangle {
   Vertex* v[3];
 
 public:
-  Triangle(int id);
+  Triangle(int id, int dom_size_horizontal);
   int getId() const { return id_; }
   Vertex** getVertices() { return v; }
   double data_;
 };
-// template <typename collection>
-// std::ostream& printVertices(std::ostream& os, const collection& list) {
-//   os << "POINTS " << list.size() << " float" << std::endl;
-//   for(auto v : list)
-//     os << v->i_ << " " << v->j_ << " "
-//        << "0" << std::endl;
-//   return os;
-// }
-// template <typename collection>
-// std::ostream& printTriangles(std::ostream& os, const collection& list) {
-//   os << "CELLS " << list.size() << " " << list.size() * 4 << std::endl;
-//   for(auto tri : list) {
-//     auto v = tri->getVertices();
-//     os << "3 " << v[0]->id_ << " " << v[1]->id_ << " " << v[2]->id_ << std::endl;
-//   }
-//   os << "CELL_TYPES " << list.size() << std::endl;
-//   for(auto tri : list) {
-//     os << "5" << std::endl;
-//   }
-//   os << "CELL_DATA " << list.size() << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
-//   for(auto tri : list) {
-//     os << tri->data_ << std::endl;
-//   }
-//   return os;
-// }
 
 class Grid {
-
+  const int size_horizontal_, size_vertical_, num_triangles_;
   std::vector<Triangle*> triangles_;
   std::set<Vertex*, VertexCompare> vertices_;
 
   void init() {
-    triangles_.reserve(NUM_TRIANGLES);
-    for(int i = 0; i < NUM_TRIANGLES; ++i)
-      triangles_.push_back(new Triangle(i));
+    triangles_.reserve(num_triangles_);
+    for(int i = 0; i < num_triangles_; ++i)
+      triangles_.push_back(new Triangle(i, size_horizontal_));
     for(auto& tri : triangles_)
       tri->data_ = pow(double(tri->getVertices()[1]->i_ - 2), 2) +
                    pow(double(tri->getVertices()[1]->j_ - 2), 2);
@@ -105,7 +75,8 @@ class Grid {
   }
 
 public:
-  Grid() { init(); }
+  Grid(int size_horizontal, int size_vertical) : 
+    size_horizontal_(size_horizontal), size_vertical_(size_vertical), num_triangles_(size_horizontal * size_vertical * 2) { init(); }
   std::vector<Triangle*>& getTriangles() { return triangles_; }
   std::set<Vertex*, VertexCompare>& getVertices() { return vertices_; }
   std::string toVtk();
@@ -113,7 +84,7 @@ public:
   std::string printVertices();
   std::string printTriangles();
 
-  bool triangleIdxValid(int idx) { return idx >= 0 && idx < NUM_TRIANGLES; }
+  bool triangleIdxValid(int idx) { return idx >= 0 && idx < num_triangles_; }
 
   std::list<Triangle*> adjacencyList(Triangle& center) {
     std::list<Triangle*> out;
@@ -122,7 +93,7 @@ public:
 
       out.push_back(triangles_[center.getId() + 1]);
 
-      adjId = center.getId() - (DOM_SIZE_HORIZONTAL * 2 - 1);
+      adjId = center.getId() - (size_horizontal_ * 2 - 1);
       if(triangleIdxValid(adjId))
         out.push_back(triangles_[adjId]);
       adjId = center.getId() + 3;
@@ -137,7 +108,7 @@ public:
 
       out.push_back(triangles_[center.getId() - 1]);
 
-      adjId = center.getId() + (DOM_SIZE_HORIZONTAL * 2 - 1);
+      adjId = center.getId() + (size_horizontal_ * 2 - 1);
       if(triangleIdxValid(adjId))
         out.push_back(triangles_[adjId]);
     }
