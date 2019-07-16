@@ -181,10 +181,16 @@ public:
   }
 
   void initGauss() {
-    for(auto& tri : grid_.getTriangles())
+    for(auto& tri : grid_.getTriangles()) {
+      auto vertices = tri->getVertices();
+      double center_i = double(vertices[0]->i_ + vertices[1]->i_ + vertices[2]->i_) / 3.0;
+      double center_j = double(vertices[0]->j_ + vertices[1]->j_ + vertices[2]->j_) / 3.0;
+
       triangleData_[tri] =
-          pow(double(tri->getVertices()[1]->i_ - grid_.size_horizontal_ / 2.0), 2) +
-          pow(double(tri->getVertices()[1]->j_ - grid_.size_vertical_ / 2.0), 2);
+          exp(-(pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
+          pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
+    }
+
   }
 };
 
