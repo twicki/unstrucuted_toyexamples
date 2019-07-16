@@ -1,9 +1,12 @@
 #ifndef UNSTRUCTURED_GRID_LIB_H
 #define UNSTRUCTURED_GRID_LIB_H
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <list>
+#include <map>
 #include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -19,13 +22,11 @@ struct key_equal : public std::binary_function<coord_t, coord_t, bool> {
     return (std::get<0>(v0) == std::get<0>(v1) && std::get<1>(v0) == std::get<1>(v1));
   }
 };
-
 class Grid;
 class Vertex;
 typedef std::unordered_map<const coord_t, Vertex, key_hash, key_equal> vmap_t;
 
 class Vertex {
-
   friend class Grid;
 
   static vmap_t vmap_;
@@ -48,41 +49,78 @@ struct VertexCompare {
 };
 
 class Triangle {
-  int id_;
   Vertex* v[3];
+  int id_;
 
 public:
-  Triangle(int id, int dom_size_horizontal);
+  Triangle(int id, int dom_size_horizontal) : id_(id) {
+    int gridIdx = id / 2;
+    int subGridIdx = id % 2;
+    int gridI = gridIdx % dom_size_horizontal;
+    int gridJ = gridIdx / dom_size_horizontal;
+
+    v[0] = Vertex::get(gridI, gridJ);
+    v[1] = subGridIdx == 0 ? Vertex::get(gridI + 1, gridJ) : Vertex::get(gridI, gridJ + 1);
+    v[2] = Vertex::get(gridI + 1, gridJ + 1);
+  }
   int getId() const { return id_; }
   Vertex** getVertices() { return v; }
-  double data_;
 };
 
 class Grid {
-  const int size_horizontal_, size_vertical_, num_triangles_;
   std::vector<Triangle*> triangles_;
   std::set<Vertex*, VertexCompare> vertices_;
 
-  void init() {
+public:
+  Grid(int size_horizontal, int size_vertical)
+      : size_horizontal_(size_horizontal), size_vertical_(size_vertical),
+        num_triangles_(size_horizontal * size_vertical * 2) {
     triangles_.reserve(num_triangles_);
     for(int i = 0; i < num_triangles_; ++i)
       triangles_.push_back(new Triangle(i, size_horizontal_));
-    for(auto& tri : triangles_)
-      tri->data_ = pow(double(tri->getVertices()[1]->i_ - 2), 2) +
-                   pow(double(tri->getVertices()[1]->j_ - 2), 2);
     for(auto& pair : Vertex::vmap_)
       vertices_.insert(&(pair.second));
   }
 
-public:
-  Grid(int size_horizontal, int size_vertical) : 
-    size_horizontal_(size_horizontal), size_vertical_(size_vertical), num_triangles_(size_horizontal * size_vertical * 2) { init(); }
+  const int size_horizontal_, size_vertical_, num_triangles_;
   std::vector<Triangle*>& getTriangles() { return triangles_; }
   std::set<Vertex*, VertexCompare>& getVertices() { return vertices_; }
-  std::string toVtk();
 
-  std::string printVertices();
-  std::string printTriangles();
+  std::string toVtk() {
+    std::string output;
+    output += "# vtk DataFile Version 3.0\n2D scalar data\nASCII\nDATASET UNSTRUCTURED_GRID\n";
+    output += printVertices();
+    output += printTriangles();
+
+    return output;
+  }
+
+  // void initGauss() {
+  //   for(auto& tri : triangles_)
+  //     tri->data_ = pow(double(tri->getVertices()[1]->i_ - 2), 2) +
+  //                  pow(double(tri->getVertices()[1]->j_ - 2), 2);
+  // }
+
+  std::string printVertices() {
+    std::string output = "POINTS " + std::to_string(vertices_.size()) + " float\n";
+    for(auto v : vertices_)
+      output += std::to_string(v->i_) + " " + std::to_string(v->j_) + " " + "0" + "\n";
+    return output;
+  }
+  std::string printTriangles() {
+    std::ostringstream os;
+    os << "CELLS " << triangles_.size() << " " << triangles_.size() * 4 << std::endl;
+    for(auto tri : triangles_) {
+      auto v = tri->getVertices();
+      os << "3 " << v[0]->id_ << " " << v[1]->id_ << " " << v[2]->id_ << std::endl;
+    }
+    os << "CELL_TYPES " << triangles_.size() << std::endl;
+    for(auto tri : triangles_) {
+      os << "5" << std::endl;
+    }
+
+    return os.str();
+  }
 
   bool triangleIdxValid(int idx) { return idx >= 0 && idx < num_triangles_; }
 
@@ -114,6 +152,39 @@ public:
     }
 
     return out;
+  }
+};
+
+class Data {
+public:
+  Data(Grid& grid);
+
+  std::map<Vertex*, double> vertexData_;
+  std::map<Triangle*, double> triangleData_;
+  Grid& grid_;
+  std::list<double*> data() {
+    std::list<double*> output;
+    for(auto tri : grid_.getTriangles()) {
+      output.push_back(&(triangleData_[tri]));
+    }
+    return output;
+  }
+
+  std::string toVtk() {
+    std::ostringstream os;
+    os << "CELL_DATA " << grid_.getTriangles().size()
+       << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
+    for(auto tri : grid_.getTriangles()) {
+      os << triangleData_[tri] << std::endl;
+    }
+    return os.str();
+  }
+
+  void initGauss() {
+    for(auto& tri : grid_.getTriangles())
+      triangleData_[tri] =
+          pow(double(tri->getVertices()[1]->i_ - grid_.size_horizontal_ / 2.0), 2) +
+          pow(double(tri->getVertices()[1]->j_ - grid_.size_vertical_ / 2.0), 2);
   }
 };
 
