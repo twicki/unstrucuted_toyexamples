@@ -13,23 +13,20 @@ Triangle::Triangle(int id) : id_(id) {
   v[2] = Vertex::get(gridI + 1, gridJ + 1);
 }
 
-std::ostream& operator<<(std::ostream& os, const std::list<Vertex*>& list) {
-  return printVertices(os, list);
-};
-std::ostream& operator<<(std::ostream& os, const std::set<Vertex*, VertexCompare>& list) {
-  return printVertices(os, list);
-};
-std::ostream& operator<<(std::ostream& os, const std::list<Triangle*>& list) {
-  return printTriangles(os, list);
-};
-std::ostream& operator<<(std::ostream& os, const std::vector<Triangle*>& list) {
-  return printTriangles(os, list);
-};
+std::string Grid::toVtk() {
+  std::string output;
+  output += "# vtk DataFile Version 3.0\n2D scalar data\nASCII\nDATASET UNSTRUCTURED_GRID\n";
+  output += printVertices();
+  output += printTriangles();
 
-void Grid::toVtk() {
-  std::cout << "# vtk DataFile Version 3.0\n2D scalar data\nASCII\nDATASET UNSTRUCTURED_GRID\n";
-  // print vertices
-  std::cout << vertices_ << std::endl;
-  // print triangles
-  std::cout << triangles_ << std::endl;
+  return output;
 }
+
+std::string Grid::printVertices() {
+  std::string output = "POINTS " + std::to_string(vertices_.size()) + " float\n";
+  for(auto v : vertices_)
+    output += std::to_string(v->i_) + " " + std::to_string(v->j_) + " " + "0" + "\n";
+  return output;
+}
+
+std::string Grid::printTriangles() { return "hello"; }

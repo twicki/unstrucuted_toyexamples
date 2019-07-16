@@ -62,31 +62,31 @@ public:
   Vertex** getVertices() { return v; }
   double data_;
 };
-template <typename collection>
-std::ostream& printVertices(std::ostream& os, const collection& list) {
-  os << "POINTS " << list.size() << " float" << std::endl;
-  for(auto v : list)
-    os << v->i_ << " " << v->j_ << " "
-       << "0" << std::endl;
-  return os;
-}
-template <typename collection>
-std::ostream& printTriangles(std::ostream& os, const collection& list) {
-  os << "CELLS " << list.size() << " " << list.size() * 4 << std::endl;
-  for(auto tri : list) {
-    auto v = tri->getVertices();
-    os << "3 " << v[0]->id_ << " " << v[1]->id_ << " " << v[2]->id_ << std::endl;
-  }
-  os << "CELL_TYPES " << list.size() << std::endl;
-  for(auto tri : list) {
-    os << "5" << std::endl;
-  }
-  os << "CELL_DATA " << list.size() << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
-  for(auto tri : list) {
-    os << tri->data_ << std::endl;
-  }
-  return os;
-}
+// template <typename collection>
+// std::ostream& printVertices(std::ostream& os, const collection& list) {
+//   os << "POINTS " << list.size() << " float" << std::endl;
+//   for(auto v : list)
+//     os << v->i_ << " " << v->j_ << " "
+//        << "0" << std::endl;
+//   return os;
+// }
+// template <typename collection>
+// std::ostream& printTriangles(std::ostream& os, const collection& list) {
+//   os << "CELLS " << list.size() << " " << list.size() * 4 << std::endl;
+//   for(auto tri : list) {
+//     auto v = tri->getVertices();
+//     os << "3 " << v[0]->id_ << " " << v[1]->id_ << " " << v[2]->id_ << std::endl;
+//   }
+//   os << "CELL_TYPES " << list.size() << std::endl;
+//   for(auto tri : list) {
+//     os << "5" << std::endl;
+//   }
+//   os << "CELL_DATA " << list.size() << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
+//   for(auto tri : list) {
+//     os << tri->data_ << std::endl;
+//   }
+//   return os;
+// }
 
 class Grid {
 
@@ -108,7 +108,10 @@ public:
   Grid() { init(); }
   std::vector<Triangle*>& getTriangles() { return triangles_; }
   std::set<Vertex*, VertexCompare>& getVertices() { return vertices_; }
-  void toVtk();
+  std::string toVtk();
+
+  std::string printVertices();
+  std::string printTriangles();
 
   bool triangleIdxValid(int idx) { return idx >= 0 && idx < NUM_TRIANGLES; }
 
