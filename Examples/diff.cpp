@@ -10,29 +10,24 @@ int main(int argc, char const* argv[]) {
   std::string filename(argv[3]);
   Grid grid(x, y);
 
-  const int timeSteps = 10;
+  const int timeSteps = 2;
   std::vector<Data> winds;
   for(int i=0; i<timeSteps; i++)
     winds.emplace_back(grid);
 
   winds[0].initGauss();
 
-  /*for(auto triangle : grid.getTriangles()) {
-    if(triangle->getId() == 170) {
-      winds[0].triangleData_[triangle] = 1;
-    } else {
-      winds[0].triangleData_[triangle] = 0;
-    }
-  }*/
 
   for(int step = 0; step < timeSteps-1; step++)
     for(auto triangle : grid.getTriangles()) {
-      auto neighbours = grid.adjacencyList(*triangle);
-      winds[step+1].triangleData_[triangle] = -3.0 * winds[step].triangleData_[triangle];
+      auto neighbours = grid.cellNeighboursOfCell(triangle);
+      //grid.vertexNeighbourOfCell
+      winds[step+1].triangleData_[triangle] = -0.1 * 3.0 * winds[step].triangleData_[triangle];
       for(auto neigh : neighbours)
-        winds[step+1].triangleData_[triangle] += winds[step].triangleData_[neigh];
-      //TODO: normalize?
+        winds[step+1].triangleData_[triangle] += 0.1*winds[step].triangleData_[neigh];
+      winds[step+1].triangleData_[triangle] += winds[step].triangleData_[triangle];
     }
+
 
   // write to files
   int step = 0;
