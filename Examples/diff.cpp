@@ -10,8 +10,8 @@ int main(int argc, char const* argv[]) {
   std::string filename(argv[3]);
   Grid grid(x, y);
 
-  const int timeSteps = 2;
-  std::vector<Data> winds;
+  const int timeSteps = 20;
+  std::vector<CellData> winds;
   for(int i=0; i<timeSteps; i++)
     winds.emplace_back(grid);
 
@@ -22,10 +22,10 @@ int main(int argc, char const* argv[]) {
     for(auto triangle : grid.getTriangles()) {
       auto neighbours = grid.cellNeighboursOfCell(triangle);
       //grid.vertexNeighbourOfCell
-      winds[step+1].triangleData_[triangle] = -0.1 * 3.0 * winds[step].triangleData_[triangle];
+      winds[step+1].getData()[triangle] = -0.1 * 3.0 * winds[step].getData()[triangle];
       for(auto neigh : neighbours)
-        winds[step+1].triangleData_[triangle] += 0.1*winds[step].triangleData_[neigh];
-      winds[step+1].triangleData_[triangle] += winds[step].triangleData_[triangle];
+        winds[step+1].getData()[triangle] += 0.1*winds[step].getData()[neigh];
+      winds[step+1].getData()[triangle] += winds[step].getData()[triangle];
     }
 
 

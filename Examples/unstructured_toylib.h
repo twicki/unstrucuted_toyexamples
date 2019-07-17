@@ -165,27 +165,29 @@ public:
   std::list<Triangle*> cellNeighboursOfCell(Triangle* center);
 };
 
+template<typename T>
 class Data {
-public:
-  Data(Grid& grid);
-
-  std::map<Vertex*, double> vertexData_;
-  std::map<Triangle*, double> triangleData_;
+protected:
+  std::map<T*, double> data_;
   Grid& grid_;
-  std::list<double*> data() {
-    std::list<double*> output;
-    for(auto tri : grid_.getTriangles()) {
-      output.push_back(&(triangleData_[tri]));
-    }
-    return output;
+  Data(Grid& grid) : grid_(grid) {}
+public:
+  virtual std::string toVtk() = 0;
+  std::map<T*, double>& getData() {
+    return data_;
   }
+};
+
+class CellData : public Data<Triangle> {
+public:
+  CellData(Grid& grid);
 
   std::string toVtk() {
     std::ostringstream os;
     os << "CELL_DATA " << grid_.getTriangles().size()
        << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
     for(auto tri : grid_.getTriangles()) {
-      os << triangleData_[tri] << std::endl;
+      os << data_[tri] << std::endl;
     }
     return os.str();
   }
@@ -196,7 +198,7 @@ public:
       double center_i = double(vertices[0]->i_ + vertices[1]->i_ + vertices[2]->i_) / 3.0;
       double center_j = double(vertices[0]->j_ + vertices[1]->j_ + vertices[2]->j_) / 3.0;
 
-      triangleData_[tri] =
+      data_[tri] =
           exp(-0.1*(pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
           pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
     }

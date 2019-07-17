@@ -52,11 +52,8 @@ Triangle::Triangle(int id, Grid& grid) : id_(id) {
     return out;
   }
 
-Data::Data(Grid& grid) : grid_(grid) {
-  for(const auto& vtx : grid.getVertices()) {
-    vertexData_.emplace(vtx, 0);
-  }
+CellData::CellData(Grid& grid) : Data(grid) {
   for(const auto& cell : grid.getTriangles()) {
-    triangleData_.emplace(cell, 0);
+    data_.emplace(cell, 0);
   }
 }
