@@ -61,6 +61,7 @@ class Edge {
 public:
   const int grid_i_, grid_j_, color_; //color 0: edge below of grid cell, 1: left edge of grid cell, 2: diagonal edge of grid cell
   const int id_;
+  inline Vertex** getVertices() { return v_; }
 };
 
 struct EdgeCompare {
@@ -75,8 +76,8 @@ class Triangle {
 public:
   Triangle(int id, Grid& grid);
   int getId() const { return id_; }
-  Vertex** getVertices() { return v_; }
-  Edge** getEdges() { return e_; }
+  inline Vertex** getVertices() { return v_; }
+  inline Edge** getEdges() { return e_; }
 };
 
 class Grid {
@@ -119,9 +120,9 @@ public:
       edges_.insert(&(pair.second));
   }
 
-  std::vector<Triangle*>& getTriangles() { return triangles_; }
-  std::set<Vertex*, VertexCompare>& getVertices() { return vertices_; }
-  std::set<Edge*, EdgeCompare>& getEdges() { return edges_; }
+  inline std::vector<Triangle*>& getTriangles() { return triangles_; }
+  inline std::set<Vertex*, VertexCompare>& getVertices() { return vertices_; }
+  inline std::set<Edge*, EdgeCompare>& getEdges() { return edges_; }
 
   std::string toVtk() {
     std::string output;
@@ -163,6 +164,15 @@ public:
   bool triangleIdxValid(int idx) { return idx >= 0 && idx < num_triangles_; }
 
   std::list<Triangle*> cellNeighboursOfCell(Triangle* center);
+  std::list<Edge*> edgeNeighboursOfCell(Triangle* center);
+  std::list<Vertex*> vertexNeighboursOfCell(Triangle* center);
+  std::list<Triangle*> cellNeighboursOfEdge(Edge* center); // returns first an upper triangle then a lower triangle
+  // std::list<Edge*> edgeNeighboursOfEdge(Edge* center);
+  std::list<Vertex*> vertexNeighboursOfEdge(Edge* center);
+  // std::list<Triangle*> cellNeighboursOfVertex(Vertex* center);
+  // std::list<Edge*> edgeNeighboursOfVertex(Vertex* center);
+  // std::list<Vertex*> vertexNeighboursOfVertex(Vertex* center);
+  
 };
 
 template<typename T>
