@@ -70,6 +70,7 @@ public:
   inline Vertex** getVertices() { return v_; }
   inline Triangle* getFromCell() { return from_; }
   inline Triangle* getToCell() { return to_; }
+  inline int getColor() { return color_; }
 };
 
 struct EdgeCompare {
@@ -127,7 +128,6 @@ public:
       vertices_.insert(&(pair.second));
     for(auto& pair : emap_)
       edges_.insert(&(pair.second));
-
     for(auto& edge : edges_) {
       auto neighbours = cellNeighboursOfEdge(edge);
       for(auto& triangle : neighbours) {
@@ -137,6 +137,10 @@ public:
           edge->to_ = triangle;
       }
     }
+  }
+
+  inline Triangle* getTriangle(int grid_i, int grid_j, int color) {
+    return triangles_[(grid_i + size_horizontal_ * grid_j) * 2 + color];
   }
 
   inline std::vector<Triangle*>& getTriangles() { return triangles_; }
@@ -186,8 +190,7 @@ public:
   std::list<Triangle*> cellNeighboursOfCell(Triangle* center);
   std::list<Edge*> edgeNeighboursOfCell(Triangle* center);
   std::list<Vertex*> vertexNeighboursOfCell(Triangle* center);
-  std::list<Triangle*>
-  cellNeighboursOfEdge(Edge* center); // returns first an upper triangle then a lower triangle
+  std::list<Triangle*> cellNeighboursOfEdge(Edge* center);
   // std::list<Edge*> edgeNeighboursOfEdge(Edge* center);
   std::list<Vertex*> vertexNeighboursOfEdge(Edge* center);
   // std::list<Triangle*> cellNeighboursOfVertex(Vertex* center);

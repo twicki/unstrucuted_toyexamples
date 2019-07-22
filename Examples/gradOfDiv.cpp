@@ -1,4 +1,5 @@
 #include "unstructured_toylib.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -30,9 +31,13 @@ int main(int argc, char const* argv[]) {
       auto neighbours = grid.edgeNeighboursOfCell(triangle);
       temperatures[step + 1].getData()[triangle] = temperatures[step].getData()[triangle];
 
-      for(auto edge : neighbours)
+      for(auto edge : neighbours) {
+        double scaling =
+            edge->getColor() == 2 ? 3.0 * sqrt(2) / (2.0 + sqrt(2)) : 3.0 / (2.0 + sqrt(2));
         temperatures[step + 1].getData()[triangle] +=
-            (edge->getFromCell() == triangle ? -1.0 : 1.0) * (0.1) * flux[step].getData()[edge];
+            (edge->getFromCell() == triangle ? -1.0 : 1.0) * (0.1) * scaling *
+            flux[step].getData()[edge];
+      }
     }
   }
 
@@ -47,7 +52,7 @@ int main(int argc, char const* argv[]) {
   // }
 
   // write to file
-  for(int step = 0; step < timeSteps - 1; step++) {
+  for(int step = 0; step < timeSteps; step++) {
     std::ofstream ofile;
     ofile.open(filename + "_" + std::to_string(step) + ".vtk");
     ofile << grid.toVtk() << temperatures[step].toVtk() << std::endl;

@@ -28,30 +28,51 @@ Triangle::Triangle(int id, Grid& grid) : id_(id) {
 
 std::list<Triangle*> Grid::cellNeighboursOfCell(Triangle* center) {
   std::list<Triangle*> out;
-  int adjId;
-  if(center->getId() % 2 == 0) { // even
+  int i = ((center->getId() - center->getColor()) / 2) % size_horizontal_;
+  int j = ((center->getId() - center->getColor()) / 2) / size_horizontal_;
 
-    out.push_back(triangles_[center->getId() + 1]);
-
-    adjId = center->getId() - (size_horizontal_ * 2 - 1);
-    if(triangleIdxValid(adjId))
-      out.push_back(triangles_[adjId]);
-    adjId = center->getId() + 3;
-    if(triangleIdxValid(adjId))
-      out.push_back(triangles_[adjId]);
-
-  } else { // odd
-
-    adjId = center->getId() - 3;
-    if(triangleIdxValid(adjId))
-      out.push_back(triangles_[adjId]);
-
-    out.push_back(triangles_[center->getId() - 1]);
-
-    adjId = center->getId() + (size_horizontal_ * 2 - 1);
-    if(triangleIdxValid(adjId))
-      out.push_back(triangles_[adjId]);
+  switch(center->getColor()) {
+  case 0:
+    out.push_back(getTriangle(i, j, 1));
+    if(j > 0)
+      out.push_back(getTriangle(i, j - 1, 1));
+    if(i < size_horizontal_ - 1)
+      out.push_back(getTriangle(i + 1, j, 1));
+    break;
+  case 1:
+    out.push_back(getTriangle(i, j, 0));
+    if(i > 0)
+      out.push_back(getTriangle(i - 1, j, 0));
+    if(j < size_horizontal_ - 1)
+      out.push_back(getTriangle(i, j + 1, 0));
+    break;
   }
+
+  // int adjId;
+
+  // if(center->getId() % 2 == 0) { // even
+
+  //   out.push_back(triangles_[center->getId() + 1]);
+
+  //   adjId = center->getId() - (size_horizontal_ * 2 - 1);
+  //   if(triangleIdxValid(adjId))
+  //     out.push_back(triangles_[adjId]);
+  //   adjId = center->getId() + 3;
+  //   if(triangleIdxValid(adjId))
+  //     out.push_back(triangles_[adjId]);
+
+  // } else { // odd
+
+  //   adjId = center->getId() - 3;
+  //   if(triangleIdxValid(adjId))
+  //     out.push_back(triangles_[adjId]);
+
+  //   out.push_back(triangles_[center->getId() - 1]);
+
+  //   adjId = center->getId() + (size_horizontal_ * 2 - 1);
+  //   if(triangleIdxValid(adjId))
+  //     out.push_back(triangles_[adjId]);
+  // }
 
   return out;
 }
@@ -72,45 +93,31 @@ std::list<Vertex*> Grid::vertexNeighboursOfCell(Triangle* center) {
 
 std::list<Triangle*> Grid::cellNeighboursOfEdge(Edge* center) {
   std::list<Triangle*> out;
-  // out.push_back(center->getFromCell());
-  // out.push_back(center->getToCell());
-  // return out;
   int gridIdx = center->grid_i_ + size_horizontal_ * center->grid_j_;
   int adjId;
+  int i = center->grid_i_;
+  int j = center->grid_j_;
 
   switch(center->color_) {
   case 0:
-    adjId = gridIdx * 2 + 1;
-    if(triangleIdxValid(adjId))
-      out.push_back(triangles_[adjId]);
-    gridIdx += size_horizontal_;
-    adjId = gridIdx * 2;
-    if(triangleIdxValid(adjId))
-      out.push_front(triangles_[adjId]);
+    if(j >= 0)
+      out.push_back(getTriangle(i, j, 1));
+    if(j < size_vertical_ - 1)
+      out.push_back(getTriangle(i, j + 1, 0));
     break;
   case 1:
-    adjId = gridIdx * 2 + 1;
-    if(triangleIdxValid(adjId))
-      out.push_back(triangles_[adjId]);
-    if(center->grid_i_ != 0) {
-      gridIdx--;
-      adjId = gridIdx * 2;
-      out.push_front(triangles_[adjId]);
-    }
+    if(i < size_horizontal_)
+      out.push_back(getTriangle(i, j, 1));
+    if(i > 0)
+      out.push_back(getTriangle(i - 1, j, 0));
     break;
   case 2:
-    adjId = gridIdx * 2;
-    assert(triangleIdxValid(adjId));
-    out.push_back(triangles_[adjId]);
-    out.push_back(triangles_[adjId + 1]);
+    out.push_back(getTriangle(i, j, 0));
+    out.push_back(getTriangle(i, j, 1));
     break;
   }
   return out;
 }
-//
-//
-//
-
 std::list<Vertex*> Grid::vertexNeighboursOfEdge(Edge* center) {
   std::list<Vertex*> out;
   for(int i = 0; i < 2; i++)
