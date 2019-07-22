@@ -1,6 +1,7 @@
 #ifndef UNSTRUCTURED_GRID_LIB_H
 #define UNSTRUCTURED_GRID_LIB_H
 #include <algorithm>
+#include <assert.h>
 #include <cmath>
 #include <iostream>
 #include <list>
@@ -10,7 +11,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <assert.h>
 
 typedef std::tuple<int, int> coord_t;
 typedef std::tuple<int, int, int> edge_coord_t;
@@ -24,11 +24,14 @@ struct vertex_key_equal : public std::binary_function<coord_t, coord_t, bool> {
   }
 };
 struct edge_key_hash : public std::unary_function<edge_coord_t, std::size_t> {
-  std::size_t operator()(const edge_coord_t& k) const { return std::get<0>(k) ^ std::get<1>(k) ^ std::get<2>(k); }
+  std::size_t operator()(const edge_coord_t& k) const {
+    return std::get<0>(k) ^ std::get<1>(k) ^ std::get<2>(k);
+  }
 };
 struct edge_key_equal : public std::binary_function<edge_coord_t, edge_coord_t, bool> {
   bool operator()(const edge_coord_t& v0, const edge_coord_t& v1) const {
-    return (std::get<0>(v0) == std::get<0>(v1) && std::get<1>(v0) == std::get<1>(v1) && std::get<2>(v0) == std::get<2>(v1));
+    return (std::get<0>(v0) == std::get<0>(v1) && std::get<1>(v0) == std::get<1>(v1) &&
+            std::get<2>(v0) == std::get<2>(v1));
   }
 };
 
@@ -44,7 +47,6 @@ class Vertex {
   Vertex(int i, int j, int idGen) : i_(i), j_(j), id_(idGen) {}
 
 public:
-  
   const int i_, j_;
   const int id_;
 };
@@ -55,13 +57,19 @@ struct VertexCompare {
 
 class Edge {
   friend class Grid;
-  Vertex * v_[2];
+  Vertex* v_[2];
+  Triangle* from_ = nullptr;
+  Triangle* to_ = nullptr;
+
   Edge(int grid_i, int grid_j, int color, int idGen, Grid& grid);
 
 public:
-  const int grid_i_, grid_j_, color_; //color 0: edge below of grid cell, 1: left edge of grid cell, 2: diagonal edge of grid cell
+  const int grid_i_, grid_j_, color_; // color 0: edge below of grid cell, 1: left edge of grid
+                                      // cell, 2: diagonal edge of grid cell
   const int id_;
   inline Vertex** getVertices() { return v_; }
+  inline Triangle* getFromCell() { return from_; }
+  inline Triangle* getToCell() { return to_; }
 };
 
 struct EdgeCompare {
@@ -78,6 +86,7 @@ public:
   int getId() const { return id_; }
   inline Vertex** getVertices() { return v_; }
   inline Edge** getEdges() { return e_; }
+  inline int getColor() { return id_ % 2; }
 };
 
 class Grid {
@@ -88,7 +97,7 @@ class Grid {
   std::set<Edge*, EdgeCompare> edges_;
   vmap_t vmap_;
   emap_t emap_;
-  int vertexIdGen_=0, edgeIdGen_=0;
+  int vertexIdGen_ = 0, edgeIdGen_ = 0;
 
   Vertex* getVertex(int i, int j) {
     auto pair = vmap_.emplace(std::make_tuple(i, j), std::move(Vertex(i, j, vertexIdGen_)));
@@ -98,14 +107,14 @@ class Grid {
   }
 
   Edge* getEdge(int grid_i, int grid_j, int color) {
-    auto pair = emap_.emplace(std::make_tuple(grid_i, grid_j, color), std::move(Edge(grid_i, grid_j, color, edgeIdGen_, *this)));
+    auto pair = emap_.emplace(std::make_tuple(grid_i, grid_j, color),
+                              std::move(Edge(grid_i, grid_j, color, edgeIdGen_, *this)));
     if(pair.second == true)
       edgeIdGen_++;
     return &(pair.first->second);
   }
 
 public:
-
   const int size_horizontal_, size_vertical_, num_triangles_;
 
   Grid(int size_horizontal, int size_vertical)
@@ -118,6 +127,16 @@ public:
       vertices_.insert(&(pair.second));
     for(auto& pair : emap_)
       edges_.insert(&(pair.second));
+
+    for(auto& edge : edges_) {
+      auto neighbours = cellNeighboursOfEdge(edge);
+      for(auto& triangle : neighbours) {
+        if(triangle->getColor() == 0)
+          edge->from_ = triangle;
+        else
+          edge->to_ = triangle;
+      }
+    }
   }
 
   inline std::vector<Triangle*>& getTriangles() { return triangles_; }
@@ -143,7 +162,8 @@ public:
     //! not vtk format
     std::string output = "EDGES\n";
     for(auto e : edges_)
-      output += "id:" + std::to_string(e->id_) + " ijc:{" + std::to_string(e->grid_i_) + " " + std::to_string(e->grid_j_) + " " + std::to_string(e->color_) + "}" + "\n";
+      output += "id:" + std::to_string(e->id_) + " ijc:{" + std::to_string(e->grid_i_) + " " +
+                std::to_string(e->grid_j_) + " " + std::to_string(e->color_) + "}" + "\n";
     return output;
   }
   std::string printTriangles() {
@@ -166,26 +186,25 @@ public:
   std::list<Triangle*> cellNeighboursOfCell(Triangle* center);
   std::list<Edge*> edgeNeighboursOfCell(Triangle* center);
   std::list<Vertex*> vertexNeighboursOfCell(Triangle* center);
-  std::list<Triangle*> cellNeighboursOfEdge(Edge* center); // returns first an upper triangle then a lower triangle
+  std::list<Triangle*>
+  cellNeighboursOfEdge(Edge* center); // returns first an upper triangle then a lower triangle
   // std::list<Edge*> edgeNeighboursOfEdge(Edge* center);
   std::list<Vertex*> vertexNeighboursOfEdge(Edge* center);
   // std::list<Triangle*> cellNeighboursOfVertex(Vertex* center);
   // std::list<Edge*> edgeNeighboursOfVertex(Vertex* center);
   // std::list<Vertex*> vertexNeighboursOfVertex(Vertex* center);
-  
 };
 
-template<typename T>
+template <typename T>
 class Data {
 protected:
   std::map<T*, double> data_;
   Grid& grid_;
   Data(Grid& grid) : grid_(grid) {}
+
 public:
   virtual std::string toVtk() = 0;
-  std::map<T*, double>& getData() {
-    return data_;
-  }
+  std::map<T*, double>& getData() { return data_; }
 };
 
 class CellData : public Data<Triangle> {
@@ -202,17 +221,15 @@ public:
     return os.str();
   }
 
-  void initGauss() {
+  void initGauss(double width) {
     for(auto& tri : grid_.getTriangles()) {
       auto vertices = tri->getVertices();
       double center_i = double(vertices[0]->i_ + vertices[1]->i_ + vertices[2]->i_) / 3.0;
       double center_j = double(vertices[0]->j_ + vertices[1]->j_ + vertices[2]->j_) / 3.0;
 
-      data_[tri] =
-          exp(-0.1*(pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
-          pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
+      data_[tri] = exp(-width * (pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
+                                 pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
     }
-
   }
 };
 
@@ -221,7 +238,7 @@ public:
   EdgeData(Grid& grid);
 
   std::string toVtk() {
-    return ""; //there's no edge data in vtk format
+    return ""; // there's no edge data in vtk format
   }
 
   void initGauss() {
@@ -230,11 +247,9 @@ public:
       double center_i = double(vertices[0]->i_ + vertices[1]->i_) / 2.0;
       double center_j = double(vertices[0]->j_ + vertices[1]->j_) / 2.0;
 
-      data_[edge] =
-          exp(-0.1*(pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
-          pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
+      data_[edge] = exp(-0.1 * (pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
+                                pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
     }
-
   }
 };
 
