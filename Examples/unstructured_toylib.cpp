@@ -113,3 +113,9 @@ CellData::CellData(Grid& grid) : Data(grid) {
     data_.emplace(cell, 0);
   }
 }
+
+EdgeData::EdgeData(Grid& grid) : Data(grid) {
+  for(const auto& edge : grid.getEdges()) {
+    data_.emplace(edge, 0);
+  }
+}

@@ -216,4 +216,26 @@ public:
   }
 };
 
+class EdgeData : public Data<Edge> {
+public:
+  EdgeData(Grid& grid);
+
+  std::string toVtk() {
+    return ""; //there's no edge data in vtk format
+  }
+
+  void initGauss() {
+    for(auto& edge : grid_.getEdges()) {
+      auto vertices = edge->getVertices();
+      double center_i = double(vertices[0]->i_ + vertices[1]->i_) / 2.0;
+      double center_j = double(vertices[0]->j_ + vertices[1]->j_) / 2.0;
+
+      data_[edge] =
+          exp(-0.1*(pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
+          pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
+    }
+
+  }
+};
+
 #endif // UNSTRUCTURED_GRID_LIB_H

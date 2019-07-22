@@ -6,3 +6,6 @@ add_library(meshLib STATIC unstructured_toylib.cpp)
 
 add_executable(diffusion diff.cpp)
 target_link_libraries(diffusion meshLib)
+
+add_executable(gradOfDiv gradOfDiv.cpp)
+target_link_libraries(gradOfDiv meshLib)
