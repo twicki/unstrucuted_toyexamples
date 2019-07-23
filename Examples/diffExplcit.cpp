@@ -1,6 +1,5 @@
-#include "unstructured_toylib.h"
+#include "grid.h"
 #include <fstream>
-#include <iostream>
 
 int main(int argc, char const* argv[]) {
   int x = atoi(argv[1]);

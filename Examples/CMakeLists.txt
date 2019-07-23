@@ -1,15 +1,7 @@
-cmake_minimum_required(VERSION 3.12)
-project(toyexamples LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 11)
+include_directories(${meshLibrary_SOURCE_DIR})
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
-endif(NOT CMAKE_BUILD_TYPE)
+add_executable(diffusion_explicit diffExplcit.cpp)
+target_link_libraries(diffusion_explicit meshLib)
 
-add_library(meshLib STATIC unstructured_toylib.cpp)
-
-add_executable(diffusion diff.cpp)
-target_link_libraries(diffusion meshLib)
-
-add_executable(gradOfDiv gradOfDiv.cpp)
-target_link_libraries(gradOfDiv meshLib)
+add_executable(diffusion_on_edges diffOnEdges.cpp)
+target_link_libraries(diffusion_on_edges meshLib)

@@ -1,7 +1,5 @@
-#include "unstructured_toylib.h"
-#include <cmath>
+#include "grid.h"
 #include <fstream>
-#include <iostream>
 
 int main(int argc, char const* argv[]) {
   int x = atoi(argv[1]);
@@ -32,8 +30,8 @@ int main(int argc, char const* argv[]) {
       temperatures[step + 1].getData()[triangle] = temperatures[step].getData()[triangle];
 
       for(auto edge : neighbours) {
-        double scaling =
-            edge->getColor() == 2 ? 3.0 * sqrt(2) / (2.0 + sqrt(2)) : 3.0 / (2.0 + sqrt(2));
+        double scaling = 1;
+        //     edge->getColor() == 2 ? 3.0 * sqrt(2) / (2.0 + sqrt(2)) : 3.0 / (2.0 + sqrt(2));
         temperatures[step + 1].getData()[triangle] +=
             (edge->getFromCell() == triangle ? -1.0 : 1.0) * (0.1) * scaling *
             flux[step].getData()[edge];
