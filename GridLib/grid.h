@@ -85,6 +85,7 @@ protected:
 public:
   virtual std::string toVtk() = 0;
   std::map<T*, double>& getData() { return data_; }
+  double& getData(T* key) { return data_[key]; }
 };
 
 class CellData : public Data<Triangle> {
