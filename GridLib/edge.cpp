@@ -11,4 +11,4 @@ Edge::Edge(int grid_i, int grid_j, int color, int idGen, Grid& grid)
   v_[1] = color == 0 ? grid.getVertex(grid_i, grid_j + 1)
                      : (color == 1 ? grid.getVertex(grid_i, grid_j)
                                    : grid.getVertex(grid_i + 1, grid_j + 1));
-};
+}

@@ -1,2 +1,10 @@
 project(meshLibrary)
-add_library(meshLib STATIC grid.cpp edge.cpp cell.cpp)
+add_library(meshLib STATIC
+                vertex.h
+                cell.h
+                cell.cpp
+                edge.h
+                edge.cpp
+                grid.h
+                grid.cpp
+)

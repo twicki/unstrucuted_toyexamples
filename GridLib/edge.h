@@ -14,8 +14,9 @@ class Edge {
   Edge(int grid_i, int grid_j, int color, int idGen, Grid& grid);
 
 public:
-  const int grid_i_, grid_j_, color_; // color 0: edge below of grid cell, 1: left edge of grid
-                                      // cell, 2: diagonal edge of grid cell
+  const int grid_i_, grid_j_;
+  const int color_; // color 0: edge below of grid cell, 1: left edge of grid
+                    // cell, 2: diagonal edge of grid cell
   const int id_;
   inline Vertex** getVertices() { return v_; }
   inline Triangle* getFromCell() { return from_; }

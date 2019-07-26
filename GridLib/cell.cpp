@@ -14,4 +14,4 @@ Triangle::Triangle(int id, Grid& grid) : id_(id) {
   e_[0] = triangleColor == 0 ? grid.getEdge(gridI + 1, gridJ, 1) : grid.getEdge(gridI, gridJ, 0);
   e_[1] = triangleColor == 0 ? grid.getEdge(gridI, gridJ - 1, 0) : grid.getEdge(gridI, gridJ, 1);
   e_[2] = grid.getEdge(gridI, gridJ, 2);
-};
+}

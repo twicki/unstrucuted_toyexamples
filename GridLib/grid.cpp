@@ -96,6 +96,38 @@ std::list<Vertex*> Grid::vertexNeighboursOfEdge(Edge* center) {
   return out;
 }
 
+std::list<Edge*> Grid::edgeNeighboursOfVertex(Vertex* center) {
+  std::list<Edge*> out;
+  int x = center->i_;
+  int y = center->j_;
+  Triangle* cell1 = nullptr;
+  Triangle* cell2 = nullptr;
+  Triangle* cell3 = nullptr;
+  if(x < (size_horizontal_ - 1) && y < (size_vertical_ - 1)) {
+    cell1 = getTriangle(x, y, 0);
+  }
+  if(x > 0 && y > 0) {
+    cell2 = getTriangle(x - 1, y - 1, 0);
+  }
+  if(y > 0 && x < (size_horizontal_ - 1)) {
+    cell3 = getTriangle(x, y - 1, 0);
+  }
+
+  if(cell3) {
+    out.push_back(cell3->getEdges()[0]);
+    out.push_back(cell3->getEdges()[1]);
+  }
+  if(cell1) {
+    out.push_back(cell1->getEdges()[2]);
+    out.push_back(cell1->getEdges()[1]);
+  }
+  if(cell2) {
+    out.push_back(cell2->getEdges()[0]);
+    out.push_back(cell2->getEdges()[2]);
+  }
+  return out;
+}
+
 Vertex* Grid::getVertex(int i, int j) {
   auto pair = vmap_.emplace(std::make_tuple(i, j), std::move(Vertex(i, j, vertexIdGen_)));
   if(pair.second == true)
@@ -117,7 +149,8 @@ Triangle* Grid::getTriangle(int grid_i, int grid_j, int color) {
 
 std::string Grid::toVtk() {
   std::string output;
-  output += "# vtk DataFile Version 3.0\n2D scalar data\nASCII\nDATASET UNSTRUCTURED_GRID\n";
+  output += "# vtk DataFile Version 3.0\n2D scalar data\nASCII\nDATASET "
+            "UNSTRUCTURED_GRID\n";
   output += printVertices();
   output += printTriangles();
 
@@ -130,7 +163,8 @@ std::string Grid::printVertices() {
     output += std::to_string(v->i_) + " " + std::to_string(v->j_) + " " + "0" + "\n";
   return output;
 }
-std::string Grid::printEdges() {
+
+std::string Grid::printDebugEdges() {
   //! not vtk format
   std::string output = "EDGES\n";
   for(auto e : edges_)
@@ -184,4 +218,46 @@ EdgeData::EdgeData(Grid& grid) : Data(grid) {
   for(const auto& edge : grid.getEdges()) {
     data_.emplace(edge, 0);
   }
+}
+
+void EdgeData::initGauss(double width) {
+  for(auto& edge : grid_.getEdges()) {
+    auto vertices = grid_.vertexNeighboursOfEdge(edge);
+    double center_i = double(vertices.front()->i_ + vertices.back()->i_) / 2.0;
+    double center_j = double(vertices.front()->j_ + vertices.back()->j_) / 2.0;
+    data_[edge] = exp(-width * (pow(center_i - double(grid_.size_horizontal_) / 2.0, 2) +
+                                pow(center_j - double(grid_.size_vertical_) / 2.0, 2)));
+  }
+}
+
+std::string EdgeData::toVtk() {
+  std::ostringstream os;
+  os << "CELL_DATA " << grid_.getTriangles().size()
+     << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
+  for(auto tri : grid_.getTriangles()) {
+    auto edges = grid_.edgeNeighboursOfCell(tri);
+    double value = 0;
+    for(auto edge : edges) {
+      value += data_[edge];
+    }
+    value /= 2.0;
+    os << value << std::endl;
+  }
+  return os.str();
+}
+
+VertexData::VertexData(Grid& grid) : Data(grid) {
+  for(const auto& vertex : grid.getVertices()) {
+    data_.emplace(vertex, 0);
+  }
+}
+
+std::string VertexData::toVtk() {
+  std::ostringstream os;
+  os << "POINT_DATA " << grid_.getVertices().size()
+     << "\nSCALARS temperature  float 1\nLOOKUP_TABLE default\n";
+  for(const auto& vertex : grid_.getVertices()) {
+    os << data_[vertex] << std::endl;
+  }
+  return os.str();
 }

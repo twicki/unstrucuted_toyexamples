@@ -67,11 +67,11 @@ public:
   // std::list<Edge*> edgeNeighboursOfEdge(Edge* center);
   std::list<Vertex*> vertexNeighboursOfEdge(Edge* center);
   // std::list<Triangle*> cellNeighboursOfVertex(Vertex* center);
-  // std::list<Edge*> edgeNeighboursOfVertex(Vertex* center);
+  std::list<Edge*> edgeNeighboursOfVertex(Vertex* center);
   // std::list<Vertex*> vertexNeighboursOfVertex(Vertex* center);
 private:
   std::string printVertices();
-  std::string printEdges();
+  std::string printDebugEdges();
   std::string printTriangles();
 };
 
@@ -101,9 +101,18 @@ class EdgeData : public Data<Edge> {
 public:
   EdgeData(Grid& grid);
 
-  std::string toVtk() {
-    return ""; // there's no edge data in vtk format
-  }
+  std::string toVtk();
+
+  void initGauss(double width);
+};
+
+class VertexData : public Data<Vertex> {
+public:
+  VertexData(Grid& grid);
+
+  std::string toVtk();
+
+  void initGauss(double width);
 };
 
 #endif // UNSTRUCTURED_GRID_LIB_H
