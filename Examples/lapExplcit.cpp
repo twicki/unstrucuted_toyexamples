@@ -33,7 +33,7 @@ int main(int argc, char const* argv[]) {
 
   for(int time = 0; time < timeSteps - 1; time++) {
     //==--------------------------------------------------------------------------------------------
-    // computation of the gradient
+    // computation of the divergence (positive for up cells, negative for down)
     //==--------------------------------------------------------------------------------------------
     for(auto cell : grid.getTriangles()) {
       auto edgeNeighbours = grid.edgeNeighboursOfCell(cell);
@@ -41,9 +41,10 @@ int main(int argc, char const* argv[]) {
       for(auto edge : edgeNeighbours) {
         double edgelength = (edge->getColor() == 2) ? std::sqrt(2) : 1;
         gradients[time].getData(cell) += temperatures[time].getData(edge) *
-                                         (edge->getFromCell() == cell ? -1.0 : 1.0) * edgelength /
+                                         /*(edge->getFromCell() == cell ? -1.0 : 1.0) **/ edgelength /
                                          area;
       }
+      gradients[time].getData(cell) *= (cell->getColor() ? -1 : 1);
     }
     //==--------------------------------------------------------------------------------------------
     // computation of the curl
@@ -74,7 +75,7 @@ int main(int argc, char const* argv[]) {
       //==------------------------------------------------------------------------------------------
       auto cellNeighbours = grid.cellNeighboursOfEdge(edge);
       for(auto cell : cellNeighbours) {
-        int sign = edge->getFromCell() == cell ? -1 : 1;
+        int sign = edge->getColor()/*edge->getFromCell() == cell*/ ? -1 : 1;
         grad += gradients[time].getData(cell) * sign;
       }
       grad /= dual_length;
