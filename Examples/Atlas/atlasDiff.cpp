@@ -20,6 +20,7 @@
 #include <sstream>
 
 int main() {
+  int timeSteps = 10;
   ////////////////////// Regular Grid setup
   // Grid setup: 10 x 10 lat lon points
   atlas::StructuredGrid structuredGrid = atlas::Grid("L50x49");
