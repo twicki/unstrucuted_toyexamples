@@ -21,7 +21,7 @@
 int main() {
   ////////////////////// Regular Grid setup
   // Grid setup: 10 x 10 lat lon points
-  atlas::StructuredGrid structuredGrid = atlas::Grid("L9x10");
+  atlas::StructuredGrid structuredGrid = atlas::Grid("O32");
   // Mesh setup to this grid (quads)
   atlas::StructuredMeshGenerator generator;
   auto mesh = generator.generate(structuredGrid);
@@ -38,6 +38,7 @@ int main() {
 
   auto lonlat = atlas::array::make_view<double, 2>(mesh.nodes().lonlat());
   auto temp2 = atlas::array::make_view<double, 2>(field_temp2);
+
   for(int jNode = 0, size = mesh.nodes().size(); jNode < size; ++jNode) {
     int iCoordinate = lonlat(jNode, 0) * deg2rad;
     int jCoordinate = lonlat(jNode, 1) * deg2rad + 1;
@@ -45,6 +46,10 @@ int main() {
     temp2(jNode, 0) = iCoordinate + 10 * jCoordinate;
     auto& node = mesh.nodes();
     auto& connectivity = node.cell_connectivity();
+    int neighIDX;
+    connectivity(jNode, neighIDX);
+    // std::cout << connectivity.size() << std::endl;
+    // std::cout << neighIDX << std::endl;
   }
   gmesh.write(field_temp2);
 }

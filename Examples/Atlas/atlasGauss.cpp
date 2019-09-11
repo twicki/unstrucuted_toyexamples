@@ -56,18 +56,19 @@ int main(int argc, char const* argv[]) {
     temp2(jNode, 0) =
         exp(-width * (pow(iCoordinate - 6.0 / 2.0, 2) + pow(jCoordinate - 2.0 / 2.0, 2)));
   }
+  field_temp2.metadata().set("step", 0);
+  gmesh.write(field_temp2);
 
   // time stepping
   auto& connectivity = mesh.nodes().cell_connectivity();
-  for(int step = 0; step < timeSteps - 1; step++) {
+  for(int step = 1; step < timeSteps; step++) {
+    // do something
     for(int jNode = 0, size = mesh.nodes().size(); jNode < size; ++jNode) {
-      int nneigh = connectivity.cols(jNode);
-      temp2(jNode, 0) += -0.1 * double(nneigh) * temp2(jNode, 0);
-      for(int neigh = 0; neigh < nneigh; ++neigh) {
-        temp2(jNode, 0) += 0.1 * temp2(connectivity(jNode, neigh), 0);
-      }
+      temp2(jNode, 0) += 0.05;
     }
+    // print
+    field_temp2.metadata().set("step", step);
+    gmesh.write(field_temp2);
   }
-  gmesh.write(field_temp2);
   return 0;
 }

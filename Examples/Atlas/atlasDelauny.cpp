@@ -19,19 +19,29 @@
 #include <iostream>
 #include <sstream>
 
-int main() {
-  int timeSteps = 10;
+int main(int argc, char const* argv[]) {
+  if(argc != 5) {
+    std::cout << "intended use is\n"
+              << argv[0] << " <X> <Y> <# Timesteps> <outputfile base>" << std::endl;
+    return -1;
+  }
+  int x = atoi(argv[1]);
+  int y = atoi(argv[2]);
+  int timeSteps = atoi(argv[3]);
+  std::string filename(argv[4]);
   ////////////////////// Regular Grid setup
   // Grid setup: 10 x 10 lat lon points
-  atlas::StructuredGrid structuredGrid = atlas::Grid("L50x49");
+  atlas::StructuredGrid structuredGrid = atlas::Grid("L50x50");
   std::cout << "grid.npts() = " << structuredGrid.size() << std::endl;
 
   // Mesh setup to this grid (quads)
-  atlas::StructuredMeshGenerator generator;
-  auto mesh = generator.generate(structuredGrid);
+  atlas::MeshGenerator meshgen("delaunay");
 
-  std::cout << "connectivity_table_size(): " << mesh.nodes().cell_connectivity().size()
-            << std::endl;
+  atlas::Mesh mesh = meshgen.generate(structuredGrid);
+
+  atlas::output::Gmsh gmesh("mymesh.msh");
+  gmesh.write(mesh);
+
   // Field
   atlas::functionspace::NodeColumns fs_nodes(mesh, atlas::option::levels(1));
   auto field_temp2 = fs_nodes.createField<double>(atlas::option::name("temperature"));
@@ -48,5 +58,7 @@ int main() {
     temp2(jNode, 0) =
         exp(-width * (pow(iCoordinate - 6.0 / 2.0, 2) + pow(jCoordinate - 2.0 / 2.0, 2)));
   }
+  field_temp2.metadata().set("step", 0);
+  gmesh.write(field_temp2);
   return 0;
 }

@@ -2,14 +2,17 @@
 find_package(eckit)
 find_package(atlas)
 
-add_executable(autogenMesh atlasMesh.cpp)
-target_link_libraries(autogenMesh atlas)
+add_executable(meshGen atlasMeshGen.cpp)
+target_link_libraries(meshGen atlas)
 
-add_executable(printData atlasPrint.cpp)
-target_link_libraries(printData atlas)
+add_executable(printer atlasPrint.cpp)
+target_link_libraries(printer atlas)
 
-add_executable(neighborAccess atlasGauss.cpp)
-target_link_libraries(neighborAccess atlas)
+add_executable(gaussian atlasGauss.cpp)
+target_link_libraries(gaussian atlas)
 
-add_executable(diffAtlas atlasDiff.cpp)
-target_link_libraries(diffAtlas atlas)
+add_executable(delauny atlasDelauny.cpp)
+target_link_libraries(delauny atlas)
+
+add_executable(diffusion atlasDiff.cpp)
+target_link_libraries(diffusion atlas)
