@@ -1,4 +1,5 @@
 #include "grid.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -38,8 +39,7 @@ int main(int argc, char const* argv[]) {
       temperatures[step + 1].getData(triangle) = temperatures[step].getData(triangle);
 
       for(auto edge : neighbours) {
-        double scaling = 1;
-        //     edge->getColor() == 2 ? 3.0 * sqrt(2) / (2.0 + sqrt(2)) : 3.0 / (2.0 + sqrt(2));
+        double scaling = 0.1 * (edge->getColor() != 2 ? std::sqrt(5) : 1);
         temperatures[step + 1].getData(triangle) += (edge->getFromCell() == triangle ? -1.0 : 1.0) *
                                                     (0.1) * scaling * flux[step].getData(edge);
       }
