@@ -22,3 +22,6 @@ target_link_libraries(cellField atlas)
 
 add_executable(cellDiffusion atlasCellDiffusion.cpp)
 target_link_libraries(cellDiffusion atlas)
+
+add_executable(cellDiffusionMPI atlasCellDiffusionMPI.cpp)
+target_link_libraries(cellDiffusionMPI atlas)

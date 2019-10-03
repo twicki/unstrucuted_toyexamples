@@ -104,7 +104,7 @@ int main(int argc, char const* argv[]) {
     // do diffusion
     for(int jCell = 0, size = mesh.cells().size(); jCell < size; ++jCell) {
       auto neighs = cellNeighborOfCells(jCell, mesh, conn);
-      double sum = 0.;
+      double sum = 0.;  
       for(auto neigh : neighs) {
         sum += temp_in(neigh, 0);
       }
