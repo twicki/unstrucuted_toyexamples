@@ -1,2 +1,7 @@
 build
 CMakeLists.txt.user
+
+**/compile_commands.json
+.vscode
+**/atlas_env
+**/.clangd

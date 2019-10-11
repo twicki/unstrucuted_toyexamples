@@ -8,3 +8,4 @@ add_library(meshLib STATIC
                 grid.h
                 grid.cpp
 )
+target_include_directories(meshLib PUBLIC .)
