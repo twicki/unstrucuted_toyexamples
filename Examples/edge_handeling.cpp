@@ -15,10 +15,24 @@ int main(int argc, char const* argv[]) {
     }
   }
 
-  double dt5 = 0.5;
   for(int i = 0; i < 1; ++i) {
     for(int j = 0; j < horizontal; ++j) {
-      g(i, j) = g(i, j - 1);
+      g(i, j) = 0;
+    }
+  }
+  for(int i = horizontal - 1; i < horizontal; ++i) {
+    for(int j = 0; j < horizontal; ++j) {
+      g(i, j) = 0;
+    }
+  }
+  for(int i = 0; i < horizontal; ++i) {
+    for(int j = 0; j < 1; ++j) {
+      g(i, j) = 0;
+    }
+  }
+  for(int i = 0; i < horizontal; ++i) {
+    for(int j = horizontal - 1; j < horizontal; ++j) {
+      g(i, j) = 0;
     }
   }
 
